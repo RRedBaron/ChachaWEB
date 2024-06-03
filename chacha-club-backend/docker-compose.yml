@@ -1,0 +1,32 @@
+version: '3.8'
+services:
+  chacha-club-app:
+    container_name: chacha-club-app
+    image: node:18.16.1
+    restart: always
+    env_file: .env
+    working_dir: /home/node/app
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./:/home/node/app
+    command: bash -c "
+        npx prisma generate &&
+        npx prisma migrate deploy &&
+        npx prisma db seed &&
+        npm run build &&
+        node dist/index.js"
+    depends_on:
+      - chacha-club-db
+
+  chacha-club-db:
+    container_name: chacha-club-db
+    image: postgres:12.8
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      env_file: .env
